@@ -1,5 +1,5 @@
 class Enemy:
-    def __init__(self, dims, ty, screen, d):
+    def __init__(self, dims, ty, c):
         dims[2] = 35
         dims[3] = 35
         self.dims = dims
@@ -7,8 +7,7 @@ class Enemy:
         self.vx = 0
         self.vy = 0
         self.fc = 0
-        self.screen = screen
-        self.d = d
+        self.c = c
         if ty == 1:
             self.vx = -.8
 
@@ -27,14 +26,9 @@ class Enemy:
             else:
                 self.vx *= -1
 
-    def display(self, x, farthestRight):
-        c = 0
-        if self.ty == 1:
-            c = (255, 179, 218)
-        if self.ty == -1:
-            c = (250, 103, 97)
+    def display(self, x, farthestRight, screen, d):
         cop = self.dims[0]
         if x >= farthestRight:
             self.dims[0] = cop - x + farthestRight
-        self.d.rect(self.screen, c, self.dims)
+        d.rect(screen, self.c, self.dims)
         self.dims[0] = cop
