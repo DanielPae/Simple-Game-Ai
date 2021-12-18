@@ -23,6 +23,6 @@ class Edge:
 
     def randomWeight(self, scratch):
         if scratch:
-            self.weight = uniform(-1, 1)
+            self.weight = uniform(-1.5, 1.5)
         else:
-            self.weight += uniform(-1, 1) * .3
+            self.weight += uniform(-1.5, 1.5) * .3

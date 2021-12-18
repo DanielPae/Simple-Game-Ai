@@ -70,14 +70,20 @@ class Brain:
             r -= lih
             self.conHiddenOut[r].randomWeight(scratch)
 
-    def randomThreshold(self):
+    def randomThreshold(self, reset):
         r = randint(0, self.hiddenSize + self.outSize - 1)
         v = uniform(-1, 1) * .5
         if r < self.hiddenSize:
-            self.hidden[r] += v
+            if reset:
+                self.hidden[r] = uniform(-1, 3)
+            else:
+                self.hidden[r] += v
         else:
             r -= self.hiddenSize
-            self.output[r] += v
+            if reset:
+                self.output[r] = uniform(-1, 3)
+            else:
+                self.output[r] += v
 
     def runInput(self, inp):
         h = [self.bias] * self.hiddenSize
@@ -98,16 +104,25 @@ class Brain:
         b = self.clone()
         r = random()
         if len(b.conInHidden) + len(b.conHiddenOut) > 0:
-            b.randomWeight()
-            b.randomWeight()
-            b.randomWeight()
+            if r > .2:
+                b.randomWeight()
+            if r > .4:
+                b.randomWeight()
+            if r > .6:
+                b.randomWeight()
+            r = random()
             if r < .2:
                 b.deleteEdge()
         else:
             b.createNewEdge()
+        r = random()
         if r < .7:
             b.createNewEdge()
-        b.randomThreshold()
+        r = random()
+        if r < .1:
+            b.randomThreshold(True)
+        else:
+            b.randomThreshold(False)
         return b
 
     def clone(self):

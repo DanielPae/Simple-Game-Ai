@@ -16,7 +16,7 @@ class MyGame:
     ph = 31
     placeChoice = 0
     p = False
-    RUN_ACCEL = .01
+    RUN_ACCEL = .085
     WALK_ACCEL = .055
     MAX_RUN = 8
     JUMP_START_BOOST = -5.5
@@ -30,7 +30,7 @@ class MyGame:
     DEFEATED_COLOR = pygame.Color(250, 103, 97)
     jump_start = -1
     printTimer = 0
-    FRIC = .075
+    FRIC = .05
     killTimer = -1
     farthestRight = 425
     ground_limit = MAX_RUN
@@ -154,6 +154,7 @@ class MyGame:
                 self.state = 0
 
         if not self.forAi:
+            self.aiShowInputs()
             pygame.display.update()
 
     def handleEnemies(self):
@@ -237,12 +238,12 @@ class MyGame:
                 self.vx += self.WALK_ACCEL
             if self.left:
                 self.vx -= self.WALK_ACCEL
-            self.ground_limit = self.MAX_RUN * 3 / 5
+            self.ground_limit = self.MAX_RUN * (3 / 5)
+
+        if (not self.left and not self.right) or (self.left and self.vx > 0) or (self.right and self.vx < 0):
+            self.vx -= self.vx * self.FRIC
 
         if self.grounded:
-            if (not self.left and not self.right) or (self.left and self.vx > 0) or (self.right and self.vx < 0):
-                self.vx -= self.vx * self.FRIC
-
             if self.vx > self.ground_limit:
                 self.vx = self.ground_limit
             if self.vx < -self.ground_limit:
@@ -345,27 +346,6 @@ class MyGame:
         if keys[pygame.key.key_code("4")]:
             self.aiGetInput(30, 45)
 
-    def aiKeyPress(self, output):
-        if output[0] == 1:
-            self.jump = True
-        else:
-            self.jump = False
-
-        if output[1] == 1:
-            self.left = True
-        else:
-            self.left = False
-
-        if output[2] == 1:
-            self.right = True
-        else:
-            self.right = False
-
-        if output[3] == 1:
-            self.run = True
-        else:
-            self.run = False
-
     def printStarts(self):
         if self.frameCount >= self.printTimer:
             pickle.dump(self.platforms, open("Level1Platforms.p", 'wb'))
@@ -401,6 +381,55 @@ class MyGame:
             if self.state == 1:
                 return 0
 
+    def aiKeyPress(self, output):
+        if output[0] == 1:
+            self.jump = True
+        else:
+            self.jump = False
+
+        if output[1] == 1:
+            self.left = True
+        else:
+            self.left = False
+
+        if output[2] == 1:
+            self.right = True
+        else:
+            self.right = False
+
+        if output[3] == 1:
+            self.run = True
+        else:
+            self.run = False
+
+    def aiShowInputs(self):
+        c = (0, 0, 0, 255)
+        if self.jump:
+            c = (255, 0, 0, 255)
+        text = self.font.render('Jump', True, c)
+        self.screen.blit(text, (self.width - 150, self.height - 550))
+
+        if self.left:
+            c = (255, 0, 0, 255)
+        else:
+            c = (0, 0, 0, 255)
+        text = self.font.render('Left', True, c)
+        self.screen.blit(text, (self.width - 150, self.height - 500))
+
+        if self.right:
+            c = (255, 0, 0)
+        else:
+            c = (0, 0, 0)
+        text = self.font.render('Right', True, c)
+        self.screen.blit(text, (self.width - 150, self.height - 450))
+
+        if self.run:
+            c = (255, 0, 0)
+        else:
+            c = (0, 0, 0)
+        text = self.font.render('Run', True, c)
+        self.screen.blit(text, (self.width - 150, self.height - 400))
+
     def aiGetInput(self, inputr, inputc):
         input = [[0 for x in range(inputc)] for y in range(inputr)]
         rScale = int(self.screen.get_height() / inputr)
@@ -411,11 +440,11 @@ class MyGame:
             offset = self.farthestRight - self.x
         value = 14
         r = self.y
-        while r < self.y + self.ph:
+        while r < self.y + self.ph and 0 <= r <= self.height:
             c = self.x
             if c > self.farthestRight:
                 c = self.farthestRight
-            while c < min(self.farthestRight, self.x) + self.pw:
+            while c < min(self.farthestRight, self.x) + self.pw and 0 <= c <= self.width :
                 input[int(r / rScale)][int(c / cScale)] = value
                 c += cScale
             r += rScale
@@ -461,8 +490,10 @@ class MyGame:
         #    print(row)
         return input
 
-    def aiRunGame(self, b, inpr, inpc):
+    def aiRunGame(self, b, inpr, inpc, regular):
         print("Ai running game")
+        if regular:
+            clock = pygame.time.Clock()
         self.setup()
         while self.state == 0 and self.frameCount < 21000:
             for event in pygame.event.get():
@@ -470,10 +501,12 @@ class MyGame:
             self.draw()
             if self.frameCount % 3 == 0:
                 self.aiKeyPress(b.runInput(self.aiGetInput(inpr, inpc)))
+            if regular:
+                clock.tick(60)
             self.frameCount += 1
         b.fitness = self.x + self.score
-        if self.x > 3000:
-            b.fitness += 500
+        if self.x > 6000:
+            b.fitness += 2000
         print("ai lost with score of " + str(b.fitness))
         return self.x + self.score
 
